@@ -4,12 +4,6 @@ Created on Mon Feb 17 10:00:03 2020
 
 @author: Patricia
 """
-
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import  train_test_split 
-from sklearn.datasets import load_breast_cancer
-
 # close all previous images
 plt.close('all')
 
