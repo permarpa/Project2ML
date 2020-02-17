@@ -13,6 +13,10 @@ from sklearn.datasets import load_breast_cancer
 # close all previous images
 plt.close('all')
 
+# ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
+
 # ensure the same random numbers appear every time
 np.random.seed(0)
 
@@ -106,7 +110,9 @@ ANALYSIS
 """
 # %% RANDOM FOREST
 from sklearn.ensemble import RandomForestClassifier
-
+print('----------------------')
+print('RANDOM FOREST')
+print('----------------------')
 model=RandomForestClassifier(n_estimators=100)# a simple random forest model
 model.fit(X_train,y_train)# now fit our model for training data
 
@@ -117,8 +123,8 @@ prediction=model.predict(X_test)# predict for the test data
 from sklearn import metrics # for the check the error and accuracy of the model
 
 print('Accuracy Random Forest: ')
-metrics.accuracy_score(prediction,y_test) # to check the accuracy
-
+acc = metrics.accuracy_score(prediction,y_test) # to check the accuracy
+print(acc)
 
 """
 observation
@@ -126,7 +132,9 @@ observation
 Here the Accuracy for our model is 91 % which seems good*
 """
 # %% DEFINE MODEL AND ARCHITECTURE: NEURAL NETWORK
-
+print('----------------------')
+print('NEURAL NETWORK')
+print('----------------------')
 # building our neural network
 
 n_inputs, n_features = X_train.shape
