@@ -4,6 +4,12 @@ Created on Mon Feb 17 10:00:03 2020
 
 @author: Patricia
 """
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import  train_test_split 
+from sklearn.datasets import load_breast_cancer
+
 # close all previous images
 plt.close('all')
 
@@ -22,56 +28,55 @@ inputs = cancer.data
 outputs = cancer.target     #Malignant or bening
 labels = cancer.feature_names[0:30]
 
+
 print('The content of the breast cancer dataset is:')
 print(labels)
 print('-------------------------')
 print("inputs =  " + str(inputs.shape))
 print("outputs =  " + str(outputs.shape))
-print("labels =  ")
-print (labels)
+print("labels =  "+ str(labels.shape))
 
 
 # flatten the image
 # the value -1 means dimension is inferred from the remaining dimensions: 8x8 = 64
 n_inputs = len(inputs)
-inputs = inputs.reshape(n_inputs, -1)
+#inputs = inputs.reshape(n_inputs, -1)
 print('----------')
 print("X = (n_inputs, n_features) = " + str(inputs.shape))
 
+#%% VISUALIZATION
 
-# %% TRAIN AND TEST DATASET
-
-# Set up training data: from scikit-learn library
-train_size = 0.8
-test_size = 1 - train_size
-X_train, X_test, y_train, y_test = train_test_split(inputs, outputs, train_size=train_size,
-                                                    test_size=test_size)
-
-print("Number of training data: " + str(len(X_train)))
-print("Number of test data: " + str(len(X_test)))
+X = inputs
+y = outputs
 
 
-# %% LOGISTIC REGRESSION
-from sklearn.linear_model import LogisticRegression
+plt.figure()
+plt.scatter(X[:,0], X[:,2], s=40, c=y, cmap=plt.cm.Spectral)
+plt.xlabel('Mean radius')
+plt.ylabel('Mean perimeter')
+plt.show()
 
-print('----------------------')
-print('LOGISTIC REGRESSION')
-print('----------------------')
-logreg = LogisticRegression()
-logreg.fit(X_train, y_train)
-print("Test set accuracy: {:.2f}".format(logreg.score(X_test,y_test)))
+plt.figure()
+plt.scatter(X[:,5], X[:,6], s=40, c=y, cmap=plt.cm.Spectral)
+plt.xlabel('Mean compactness')
+plt.ylabel('Mean concavity')
+plt.show()
 
-# Scale data
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-X_train_scaled = scaler.transform(X_train)
-X_test_scaled = scaler.transform(X_test)
-logreg.fit(X_train_scaled, y_train)
-print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+
+plt.figure()
+plt.scatter(X[:,0], X[:,1], s=40, c=y, cmap=plt.cm.Spectral)
+plt.xlabel('Mean radius')
+plt.ylabel('Mean texture')
+plt.show()
+
+plt.figure()
+plt.scatter(X[:,2], X[:,1], s=40, c=y, cmap=plt.cm.Spectral)
+plt.xlabel('Mean perimeter')
+plt.ylabel('Mean compactness')
+plt.show()
+
 
 # %% COVARIANCE AND CORRELATION 
-
 
 """
 # Drawing a correlation graph it is possible to remove multi colinearity, since features
@@ -86,7 +91,7 @@ import seaborn as sns
 # Making a data frame
 breastpd = pd.DataFrame(inputs, columns=labels)
 
-corr = breastpd.corr().round(1)
+corr = breastpd.corr().round(1)		# Compute pairwise correlation of columns, excluding NA/null values.
 
 # use the heatmap function from seaborn to plot the correlation matrix
 plt.figure()
@@ -102,6 +107,157 @@ ANALYSIS
 - Therefore the chosen parameters are perimeter_mean, texture_mean, compactness_mean and symmetry_mean
 
 """
+
+
+# %% 
+from sklearn import  linear_model
+
+X_t = X[ : , 1:3]
+
+clf = linear_model.LogisticRegressionCV()
+clf.fit(X_t, y)
+
+
+# Set min and max values and give it some padding
+x_min, x_max = X_t[:, 1].min() - .5, X_t[:, 1].max() + .5
+y_min, y_max = X_t[:, 0].min() - .5, X_t[:, 0].max() + .5
+h = 0.01
+# Generate a grid of points with distance h between them
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+# Predict the function value for the whole gid
+Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+#Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+# Plot the contour and training examples
+plt.figure()
+plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+plt.scatter(X[:, 2], X[:, 1], c=y, cmap=plt.cm.Spectral)
+plt.xlabel('Mean perimeter')
+plt.ylabel('Mean texture')
+plt.title('Logistic Regression')
+plt.show()
+
+# %% TRAIN AND TEST DATASET
+
+# Set up training data: from scikit-learn library
+train_size = 0.9
+test_size = 1 - train_size
+
+X_train, X_test, y_train, y_test = train_test_split(inputs, outputs, train_size=train_size,
+                                                    test_size=test_size)
+
+print("Number of training data: " + str(len(X_train)))
+print("Number of test data: " + str(len(X_test)))
+
+
+# %% LOGISTIC REGRESSION and ACCURACY
+from sklearn.linear_model import LogisticRegression
+
+
+print('----------------------')
+print('LOGISTIC REGRESSION')
+print('----------------------')
+logreg = LogisticRegression()
+logreg.fit(X_train, y_train)
+print("Test set accuracy with Logistic Regression:: {:.2f}".format(logreg.score(X_test,y_test)))
+
+# Scale data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+logreg.fit(X_train_scaled, y_train)
+print("Test set accuracy scaled data: {:.2f}".format(logreg.score(X_test_scaled,y_test)))
+
+
+# %% DECISION TREES: REGRESSION AND ACCURACY
+
+print('----------------------')
+print('DECISION TREES')
+print('----------------------')
+
+import os
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import confusion_matrix
+from sklearn.tree import export_graphviz
+from pydot import graph_from_dot_data
+import pandas as pd
+
+#Decision Tree Regression
+from sklearn.tree import DecisionTreeRegressor
+regr_1=DecisionTreeRegressor(max_depth=2)
+regr_2=DecisionTreeRegressor(max_depth=5)
+regr_3=DecisionTreeRegressor(max_depth=11)
+regr_1.fit(X, y)
+regr_2.fit(X, y)
+regr_3.fit(X, y)
+
+y_1 = regr_1.predict(X_test)
+y_2 = regr_2.predict(X_test)
+y_3=regr_3.predict(X_test)
+
+# Plot the results
+plt.figure()
+plt.scatter(X, y, s=2.5, c="black", label="data")
+plt.plot(X_test, y_1, color="red",
+         label="max_depth=2", linewidth=2)
+plt.plot(X_test, y_2, color="green", label="max_depth=5", linewidth=2)
+plt.plot(X_test, y_3, color="m", label="max_depth=7", linewidth=2)
+
+plt.xlabel("Data")
+plt.ylabel("Target")
+plt.title("Decision Tree Regression")
+plt.legend()
+plt.show()
+
+
+# %% DECISION TREES: CLASSIFICATION and AACURACY
+
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from IPython.display import Image 
+from pydot import graph_from_dot_data
+
+
+# Create the encoder.
+encoder = OneHotEncoder(handle_unknown="ignore")
+# Assume for simplicity all features are categorical.
+encoder.fit(X)    
+# Apply the encoder.
+X = encoder.transform(X)
+
+
+# Then do a Classification tree
+
+tree_clf = DecisionTreeClassifier(max_depth=None)
+tree2_clf = DecisionTreeClassifier(max_depth=2)
+tree5_clf = DecisionTreeClassifier(max_depth=5)
+tree11_clf = DecisionTreeClassifier(max_depth=11)
+
+tree_clf.fit(X_train, y_train)
+tree2_clf.fit(X_train, y_train)
+tree5_clf.fit(X_train, y_train)
+tree11_clf.fit(X_train, y_train)
+
+test_acc = [tree_clf.score(X_test,y_test),tree2_clf.score(X_test,y_test),tree5_clf.score(X_test,y_test),tree11_clf.score(X_test,y_test)]
+
+print("Test set accuracy with Decision Tree (No Max depth): {:.2f}".format(tree_clf.score(X_test,y_test)))
+print("Test set accuracy with Decision Tree (Max depth 2): {:.2f}".format(tree2_clf.score(X_test,y_test)))
+print("Test set accuracy with Decision Tree (Max depth 5): {:.2f}".format(tree5_clf.score(X_test,y_test)))
+print("Test set accuracy with Decision Tree (Max depth 11): {:.2f}".format(tree11_clf.score(X_test,y_test)))
+
+#transfer to a decision tree graph
+export_graphviz(
+    tree_clf,
+    out_file="ride.dot",
+    rounded=True,
+    filled=True
+)
+cmd = 'dot -Tpng ride.dot -o DecisionTree_max_depth_2.png'
+os.system(cmd)
+
 # %% RANDOM FOREST
 from sklearn.ensemble import RandomForestClassifier
 print('----------------------')
@@ -125,6 +281,9 @@ observation
 
 Here the Accuracy for our model is 91 % which seems good*
 """
+
+
+
 # %% DEFINE MODEL AND ARCHITECTURE: NEURAL NETWORK
 print('----------------------')
 print('NEURAL NETWORK')
@@ -145,110 +304,3 @@ hidden_bias = np.zeros(n_hidden_neurons) + 0.01
 output_weights = np.random.randn(n_hidden_neurons, n_categories)
 output_bias = np.zeros(n_categories) + 0.01
 
-# %% FEED-FORWARD PASS, subscript h = hidden layer
-
-def sigmoid(x):
-    return 1/(1 + np.exp(-x))
-
-def feed_forward(X):
-    # weighted sum of inputs to the hidden layer
-    z_h = np.matmul(X, hidden_weights) + hidden_bias
-    # activation in the hidden layer
-    a_h = sigmoid(z_h)
-    
-    # weighted sum of inputs to the output layer
-    z_o = np.matmul(a_h, output_weights) + output_bias
-    # softmax output
-    # axis 0 holds each input and axis 1 the probabilities of each category
-    exp_term = np.exp(z_o)
-    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-    
-    return probabilities
-
-probabilities = feed_forward(X_train)
-print("probabilities = (n_inputs, n_categories) = " + str(probabilities.shape))
-print("probability that image 0 is in category 0,1,2,...,9 = \n" + str(probabilities[0]))
-print("probabilities sum up to: " + str(probabilities[0].sum()))
-print()
-
-# we obtain a prediction by taking the class with the highest likelihood
-def predict(X):
-    probabilities = feed_forward(X)
-    return np.argmax(probabilities, axis=1)
-
-
-predictions = predict(X_train)
-print("predictions = (n_inputs) = " + str(predictions.shape))
-print("prediction for image 0: " + str(predictions[0]))
-print("correct label for image 0: " + str(y_train[0]))
-
-# %% OPTIMIZING COST FUNCTION
-
-# to categorical turns our integer vector into a onehot representation
-from sklearn.metrics import accuracy_score
-
-# one-hot in numpy
-def to_categorical_numpy(integer_vector):
-    n_inputs = len(integer_vector)
-    n_categories = np.max(integer_vector) + 1
-    onehot_vector = np.zeros((n_inputs, n_categories))
-    onehot_vector[range(n_inputs), integer_vector] = 1
-    
-    return onehot_vector
-
-#Y_train_onehot, Y_test_onehot = to_categorical(Y_train), to_categorical(Y_test)
-Y_train_onehot, Y_test_onehot = to_categorical_numpy(y_train), to_categorical_numpy(y_test)
-
-def feed_forward_train(X):
-    # weighted sum of inputs to the hidden layer
-    z_h = np.matmul(X, hidden_weights) + hidden_bias
-    # activation in the hidden layer
-    a_h = sigmoid(z_h)
-    
-    # weighted sum of inputs to the output layer
-    z_o = np.matmul(a_h, output_weights) + output_bias
-    # softmax output
-    # axis 0 holds each input and axis 1 the probabilities of each category
-    exp_term = np.exp(z_o)
-    probabilities = exp_term / np.sum(exp_term, axis=1, keepdims=True)
-    
-    # for backpropagation need activations in hidden and output layers
-    return a_h, probabilities
-
-def backpropagation(X, Y):
-    a_h, probabilities = feed_forward_train(X)
-    
-    # error in the output layer
-    error_output = probabilities - Y
-    # error in the hidden layer
-    error_hidden = np.matmul(error_output, output_weights.T) * a_h * (1 - a_h)
-    
-    # gradients for the output layer
-    output_weights_gradient = np.matmul(a_h.T, error_output)
-    output_bias_gradient = np.sum(error_output, axis=0)
-    
-    # gradient for the hidden layer
-    hidden_weights_gradient = np.matmul(X.T, error_hidden)
-    hidden_bias_gradient = np.sum(error_hidden, axis=0)
-
-    return output_weights_gradient, output_bias_gradient, hidden_weights_gradient, hidden_bias_gradient
-
-print("Old accuracy on training data: " + str(accuracy_score(predict(X_train), y_train)))
-
-eta = 0.01
-lmbd = 0.01
-for i in range(1000):
-    # calculate gradients
-    dWo, dBo, dWh, dBh = backpropagation(X_train, Y_train_onehot)
-    
-    # regularization term gradients
-    dWo += lmbd * output_weights
-    dWh += lmbd * hidden_weights
-    
-    # update weights and biases
-    output_weights -= eta * dWo
-    output_bias -= eta * dBo
-    hidden_weights -= eta * dWh
-    hidden_bias -= eta * dBh
-
-print("New accuracy on training data: " + str(accuracy_score(predict(X_train), y_train)))
