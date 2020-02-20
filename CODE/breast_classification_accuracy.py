@@ -2,7 +2,7 @@
 """
 Created on Mon Feb 17 10:00:03 2020
 
-@author: Patricia
+@author: Bharat Mishra, Patricia Perez-Martin, Pinelopi Christodoulou
 """
 
 import numpy as np
@@ -78,13 +78,6 @@ plt.show()
 
 # %% COVARIANCE AND CORRELATION 
 
-"""
-# Drawing a correlation graph it is possible to remove multi colinearity, since features
-# dependenig on each do not apport new information. 
-# 
-# Only features_mean are mainly studied in this code.
-
-"""
 import pandas as pd
 import seaborn as sns 
 
@@ -98,16 +91,6 @@ plt.figure()
 sns.heatmap(corr, cbar = True,  square = True, annot=False,
            xticklabels= labels, yticklabels= labels,
            cmap= 'YlOrRd')
-
-"""
-ANALYSIS
-
-- Radius, perimeter and area are highly correlated (as it was expected), so only one of them will be used
-- Compactness, concavity and concavepoint are also highly correlated, so we will only use compactness_mean
-- Therefore the chosen parameters are perimeter_mean, texture_mean, compactness_mean and symmetry_mean
-
-"""
-
 
 # %% 
 from sklearn import  linear_model
@@ -213,7 +196,7 @@ plt.legend()
 plt.show()
 
 
-# %% DECISION TREES: CLASSIFICATION and AACURACY
+# %% DECISION TREES: CLASSIFICATION and ACCURACY
 
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -250,7 +233,7 @@ print("Test set accuracy with Decision Tree (Max depth 11): {:.2f}".format(tree1
 
 #transfer to a decision tree graph
 export_graphviz(
-    tree_clf,
+    tree2_clf,
     out_file="ride.dot",
     rounded=True,
     filled=True
@@ -263,8 +246,8 @@ from sklearn.ensemble import RandomForestClassifier
 print('----------------------')
 print('RANDOM FOREST')
 print('----------------------')
-model=RandomForestClassifier(n_estimators=100)# a simple random forest model
-model.fit(X_train,y_train)# now fit our model for training data
+model=RandomForestClassifier(n_estimators=100) # a simple random forest model
+model.fit(X_train,y_train) # now fit our model for training data
 
 prediction=model.predict(X_test)# predict for the test data
 
@@ -275,32 +258,4 @@ from sklearn import metrics # for the check the error and accuracy of the model
 print('Accuracy Random Forest: ')
 acc = metrics.accuracy_score(prediction,y_test) # to check the accuracy
 print(acc)
-
-"""
-observation
-
-Here the Accuracy for our model is 91 % which seems good*
-"""
-
-
-
-# %% DEFINE MODEL AND ARCHITECTURE: NEURAL NETWORK
-print('----------------------')
-print('NEURAL NETWORK')
-print('----------------------')
-# building our neural network
-
-n_inputs, n_features = X_train.shape
-n_hidden_neurons = 20
-n_categories = 10
-
-# we make the weights normally distributed using numpy.random.randn
-
-# weights and bias in the hidden layer
-hidden_weights = np.random.randn(n_features, n_hidden_neurons)
-hidden_bias = np.zeros(n_hidden_neurons) + 0.01
-
-# weights and bias in the output layer
-output_weights = np.random.randn(n_hidden_neurons, n_categories)
-output_bias = np.zeros(n_categories) + 0.01
 
